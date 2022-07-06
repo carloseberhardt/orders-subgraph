@@ -5,21 +5,33 @@ help: ## Display this help screen
 ACCOUNT=chico
 APIKEY:=$(shell stepzen whoami --apikey)
 ENV=dev
-GRAPH=orders
 ENDPOINT=${ENV}/${GRAPH}
+
+## define the graph name
+GRAPH=orders
 
 ## define the subgraphs to import for testing
 IMPORTS=customers weather
+customers: stepzen.config.json 
+	$(import-subgraph)
+
+weather: stepzen.config.json 
+	$(import-subgraph)
+
 
 define import-subgraph
+	@echo "importing $@..."
 	@stepzen import graphql --name=$@ --header "Authorization: apikey ${APIKEY}" "https://${ACCOUNT}.stepzen.net/${ENV}/$@/__graphql"
 endef
 
+
 import: $(IMPORTS) ## import all external schemas -> "make import [ENV={environment}]"
+
 
 start: stepzen.config.json ## deploy schema and run local proxy for testing
 	@echo "uploading and deploying with stepzen start"
 	stepzen start
+
 
 deploy: stepzen.config.json ## upload and deploy schema and configuration
 ifneq ("$(wildcard config.yaml)","")
@@ -31,19 +43,13 @@ endif
 	@echo "deploying schema to ${ENDPOINT}..."
 	stepzen deploy --schema=${ENDPOINT} ${ENDPOINT}
 
+
 clean: ## remove all external schemas specified in IMPORTS
 	@echo "removing schemas $(IMPORTS)"
 	rm -rf $(IMPORTS)
 	$(foreach i, $(IMPORTS), sed -i 's/"${i}\/index.graphql"//' index.graphql;)
 	rm stepzen.config.json
 
-customers: stepzen.config.json 
-	@echo "importing customers"
-	$(import-subgraph)
-
-weather: stepzen.config.json 
-	@echo "importing weather"
-	$(import-subgraph)
 
 stepzen.config.json:
 	stepzen init --endpoint ${ENDPOINT}
