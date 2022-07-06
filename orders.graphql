@@ -1,0 +1,13 @@
+type Order {
+  carrier: String
+  createdAt: Date
+  customerId: ID
+  id: ID
+  shippingCost: Float
+  trackingId: String
+}
+
+type Query {
+  customerOrders(customerId: ID!): [Order]
+    @rest(endpoint: "https://introspection.apis.stepzen.com/orders?q=customerId+eq+$customerId")
+}
