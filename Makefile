@@ -1,4 +1,4 @@
-.PHONY: help import start clean $(IMPORTS)
+.PHONY: help import start clean describe $(IMPORTS)
 help: ## Display this help screen
 	@grep -E '^[a-z.A-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST)  | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-10s\033[0m %s\n", $$1, $$2}'
 
@@ -23,6 +23,11 @@ define import-subgraph
 	@echo "importing $@..."
 	@stepzen import graphql --name=$@ --header "Authorization: apikey ${APIKEY}" "https://${ACCOUNT}.stepzen.net/${ENV}/$@/__graphql"
 endef
+
+describe: ## List the current configuration
+	@echo "Account: \t${ACCOUNT}"
+	@echo "Endpoint: \t${ENDPOINT}"
+	@echo "Subgraphs: \t${IMPORTS}"
 
 
 import: $(IMPORTS) ## import all external schemas -> "make import [ENV={environment}]"
